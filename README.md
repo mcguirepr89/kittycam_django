@@ -261,6 +261,12 @@ A development `.env` file can be created from the included `.env.example`.
 
 ---
 
+# Contribution
+
+Contributions that improve security, documentation, portability, or maintainability are especially welcome. The project's primary objective is to provide a simple, well-documented, and security-conscious reference implementation for self-hosted IP camera deployments.
+
+---
+
 # License
 
 This project is released under the terms of the license included in this repository.
