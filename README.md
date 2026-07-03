@@ -26,24 +26,7 @@ Although development and testing have been performed on Raspberry Pi hardware ru
 
 This repository intentionally focuses on the web application itself.
 
-```
-                    Browser
-                       │
-                       ▼
-          Reverse Proxy (Caddy recommended)
-                       │
-                       ▼
-                Django Application
-                       │
-                       ▼
-             Embedded WebRTC Stream
-                       │
-                       ▼
-                   go2rtc Server
-                       │
-                       ▼
-                    IP Camera
-```
+<img width="1774" height="887" alt="KittyCam_Architecture" src="https://github.com/user-attachments/assets/9b5fb949-f1f5-4a3e-8dd9-39d4adff5ef2" />
 
 When deployed using the companion **kittycam_docker** repository, go2rtc is reachable only through a private Tailscale network. Django never communicates directly with the camera itself; instead, it embeds the WebRTC stream provided by go2rtc.
 
