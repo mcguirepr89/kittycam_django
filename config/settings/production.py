@@ -1,4 +1,8 @@
 from .base import *                                          
+import os
+from dotenv import load_dotenv
+
+load_dotenv("/etc/kittycam/.env")
                                                              
 DEBUG = False                                                
                                                              
@@ -13,3 +17,6 @@ CSRF_COOKIE_SECURE = True
                                                              
 SESSION_COOKIE_SECURE = True                                 
 
+CSRF_TRUSTED_ORIGINS = parse_hosts(
+    os.environ.get("CSRF_TRUSTED_ORIGINS", "")
+)

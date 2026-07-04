@@ -22,9 +22,9 @@ def parse_hosts(value):
                                                                 
 ALLOWED_HOSTS = parse_hosts(os.environ.get("ALLOWED_HOSTS", ""))
                                                                 
-CSRF_TRUSTED_ORIGINS = parse_hosts(                             
-    os.environ.get("CSRF_TRUSTED_ORIGINS", "")                  
-)                                                               
+#CSRF_TRUSTED_ORIGINS = parse_hosts(                             
+#    os.environ.get("CSRF_TRUSTED_ORIGINS", "")                  
+#)                                                               
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
