@@ -12,59 +12,174 @@
             <p class="text-sm text-slate-500 mt-1">Watch Teeny sleep and/or lick her butt.</p>
         </div>
         
-	<!-- Dynamic Status Indicator Pill -->
-	<div class="flex items-center self-start sm:self-center">
-	    {% if kittycam and kittycam.enabled %}
-	        <!-- Green Online Badge -->
-	        <span class="flex items-center px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
-	            <span class="w-2 h-2 mr-2 bg-emerald-500 rounded-full animate-pulse"></span>
-	            Camera Status: Online
-	        </span>
-	    {% else %}
-	        <!-- Red Offline Badge -->
-	        <span class="flex items-center px-3 py-1 bg-rose-50 text-rose-700 text-xs font-semibold rounded-full border border-rose-200">
-	            <span class="w-2 h-2 mr-2 bg-rose-500 rounded-full"></span>
-	            Camera Status: Offline
-	        </span>
-	    {% endif %}
-	</div>
     </div>
+    {% if cameras %}
 
-    <!-- Main Live Stream Component -->
-    <div class=" bg-slate-900 overflow-hidden shadow-lg rounded-none border-y border-slate-950 sm:rounded-xl sm:border ">
-        <!-- Video Stream Title Top Bar -->
-        <div class="px-4 py-3 bg-slate-950 flex items-center justify-between">
-            <h2 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
-                📹 {% if kittycam %}{{ kittycam.name }}{% else %}Default Stream{% endif %}
-            </h2>
-            {% if kittycam and not kittycam.enabled %}
-            <span class="text-xs font-medium text-amber-400 bg-amber-950 px-2 py-0.5 rounded border border-amber-900">
-                Disabled
-            </span>
-            {% endif %}
+        {% for camera in cameras %}
+
+        <div class="mt-8">
+
+            <!-- Camera Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
+
+                <div>
+                    <h2 class="text-xl font-semibold text-slate-900">
+                        {{ camera.name }}
+                    </h2>
+                </div>
+
+                <div class="flex items-center self-start sm:self-center">
+
+                    {% if camera.enabled %}
+                        <span class="flex items-center px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
+                            <span class="w-2 h-2 mr-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                            Camera Status: Online
+                        </span>
+                    {% else %}
+                        <span class="flex items-center px-3 py-1 bg-rose-50 text-rose-700 text-xs font-semibold rounded-full border border-rose-200">
+                            <span class="w-2 h-2 mr-2 bg-rose-500 rounded-full"></span>
+                            Camera Status: Offline
+                        </span>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            <div class="bg-slate-900 overflow-hidden shadow-lg rounded-none border-y border-slate-950 sm:rounded-xl sm:border">
+
+                <div class="px-4 py-3 bg-slate-950 flex items-center justify-between">
+
+                    <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                        📹 {{ camera.name }}
+                    </h3>
+
+                    {% if not camera.enabled %}
+                        <span class="text-xs font-medium text-amber-400 bg-amber-950 px-2 py-0.5 rounded border border-amber-900">
+                            Disabled
+                        </span>
+                    {% endif %}
+
+                </div>
+
+                <div class="relative w-full bg-black aspect-[4/3] sm:aspect-video">
+
+                    <iframe
+                        id="camera-viewer-{{ camera.id }}"
+                        data-camera-id="{{ camera.id }}"
+                        src="{{ camera.viewer_url }}"
+                        class="absolute top-0 left-0 w-full h-full border-0"
+                        allowfullscreen>
+                    </iframe>
+
+                </div>
+
+            </div>
+
         </div>
 
-        <!-- Video Player Body -->
-        {% if kittycam and kittycam.enabled %}
-            <!-- Uses standard aspect-video container to dynamically resize on mobile/desktop -->
-	    <div class=" relative w-full bg-black aspect-[4/3] sm:aspect-video ">
-                <iframe 
-                    src="{{ kittycam.stream_url }}" 
-                    class="absolute top-0 left-0 w-full h-full border-0" 
-                    allowfullscreen>
-                </iframe>
-            </div>
-        {% else %}
-            <!-- Fallback state if camera isn't in database or is disabled -->
-            <div class="aspect-video w-full flex flex-col items-center justify-center text-center p-8 bg-slate-950 text-slate-400">
-                <div class="text-4xl mb-3">🚫</div>
-                <h3 class="text-base font-semibold text-slate-200">No active video stream</h3>
-                <p class="text-xs max-w-xs mt-1 text-slate-500">
-                    Teeny must have unplugged the camera and definitely needs a spanking!
-                </p>
-            </div>
-        {% endif %}
-    </div>
+        {% endfor %}
+
+    {% else %}
+
+        <div class="mt-8 aspect-video w-full flex flex-col items-center justify-center text-center p-8 bg-slate-950 text-slate-400 rounded-xl">
+
+            <div class="text-4xl mb-3">🚫</div>
+
+            <h3 class="text-base font-semibold text-slate-200">
+                No active cameras
+            </h3>
+
+            <p class="text-xs max-w-xs mt-1 text-slate-500">
+                No enabled cameras have been configured.
+            </p>
+
+        </div>
+
+    {% endif %}
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+
+    async function triggerDiagnostics(viewer, reason) {
+
+        const response = await fetch("/diagnostics/start/", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+
+            body: JSON.stringify({
+
+                camera_id: viewer.dataset.cameraId,
+                reason: reason,
+
+            }),
+
+        });
+
+        const result = await response.json();
+
+        console.log(result);
+    }
+
+    async function canReachGo2RTC(viewer) {
+
+        const controller = new AbortController();
+
+        const timeout = setTimeout(() => controller.abort(), 3000);
+
+        try {
+
+            await fetch(viewer.src, {
+
+                method: "GET",
+                mode: "no-cors",
+                signal: controller.signal,
+
+            });
+
+            clearTimeout(timeout);
+
+            console.log(
+                `✓ ${viewer.dataset.cameraId}: Browser can reach go2rtc.`
+            );
+
+            return true;
+
+        } catch (err) {
+
+            clearTimeout(timeout);
+
+            console.error(
+                `✗ ${viewer.dataset.cameraId}: Browser cannot reach go2rtc.`,
+                err
+            );
+
+            await triggerDiagnostics(viewer, "go2rtc_unreachable");
+
+            return false;
+        }
+    }
+
+    const viewers = document.querySelectorAll("iframe[data-camera-id]");
+
+    for (const viewer of viewers) {
+
+        const reachable = await canReachGo2RTC(viewer);
+
+        if (!reachable) {
+            viewer.style.display = "none";
+        }
+
+    }
+
+});
+</script>
+
 {% endblock %}

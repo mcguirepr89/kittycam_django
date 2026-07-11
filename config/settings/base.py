@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'accounts',
     'cameras',
     'dashboard',
+    'diagnostics',
 ]
 
 MIDDLEWARE = [
