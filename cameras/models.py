@@ -1,6 +1,6 @@
 from urllib.parse import quote
-
 from django.db import models
+from encrypted_fields.fields import EncryptedCharField
 
 
 class Camera(models.Model):
@@ -25,13 +25,13 @@ class Camera(models.Model):
         help_text="RTSP port exposed by the camera.",
     )
 
-    rtsp_username = models.CharField(
+    rtsp_username = EncryptedCharField(
         max_length=100,
         help_text="Username used to authenticate to the camera's RTSP server.",
     )
 
-    rtsp_password = models.CharField(
-        max_length=255,
+    rtsp_password = EncryptedCharField(
+        max_length=250,
         help_text="RTSP password (to be encrypted in a future version).",
     )
 

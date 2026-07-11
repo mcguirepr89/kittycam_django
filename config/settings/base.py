@@ -9,6 +9,8 @@ load_dotenv("/etc/kittycam/.env")
 
 SECRET_KEY = os.environ["SECRET_KEY"]
 
+SALT_KEY = os.environ["SALT_KEY"]
+
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"      
                                                                 
                                                                 
