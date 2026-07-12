@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
 from cameras.models import Camera
-from diagnostics.services.go2rtc import get_stream_status
+from diagnostics.engine import run_diagnostics
 
 
 @require_POST
@@ -23,10 +23,8 @@ def start_diagnostics(request):
             status=400,
         )
 
-
     camera_id = payload.get("camera_id")
     browser_reachable = payload.get("go2rtc_reachable")
-
 
     try:
         camera = Camera.objects.get(pk=camera_id)
@@ -41,40 +39,36 @@ def start_diagnostics(request):
             status=404,
         )
 
+    results = run_diagnostics(
+        camera=camera,
+        browser_reachable=browser_reachable,
+    )
 
     print("=== Diagnostics Request ===")
     print(f"Camera: {camera.name}")
-    print(f"Browser can reach go2rtc: {browser_reachable}")
 
+    for result in results:
 
-    #
-    # For now, only test the go2rtc API if the browser
-    # says it can reach the endpoint.
-    #
-    if browser_reachable:
+        print(f"[{result.name}]")
+        print(f"  Success : {result.success}")
+        print(f"  Status  : {result.status}")
+        print(f"  Summary : {result.summary}")
 
-        status = get_stream_status(camera)
+        if result.details:
+            print(f"  Details : {result.details}")
 
-        print("go2rtc status:")
-        print(status)
-
-    else:
-
-        status = {
-            "status": "browser_cannot_reach_go2rtc"
-        }
-
-        print("Skipping go2rtc API test.")
-
+        if result.metadata:
+            print(f"  Metadata: {result.metadata}")
 
     print("===========================")
-
 
     return JsonResponse(
         {
             "success": True,
             "camera": camera.name,
-            "browser_reachable": browser_reachable,
-            "go2rtc_status": status,
+            "results": [
+                result.to_dict()
+                for result in results
+            ],
         }
     )
