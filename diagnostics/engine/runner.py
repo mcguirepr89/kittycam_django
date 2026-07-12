@@ -1,10 +1,15 @@
-from diagnostics.engine import DiagnosticResult
-from diagnostics.services.go2rtc import get_stream_status
+from diagnostics.engine.diagnostics import browser
+from diagnostics.engine.diagnostics import go2rtc
 
 
 def run_diagnostics(camera, browser_reachable):
     """
     Run all applicable diagnostics for a camera.
+
+    The runner is responsible only for orchestration.
+
+    Each diagnostic module is responsible for performing one diagnostic
+    and returning a DiagnosticResult.
 
     Returns:
         list[DiagnosticResult]
@@ -13,66 +18,37 @@ def run_diagnostics(camera, browser_reachable):
     results = []
 
     #
-    # Browser connectivity
+    # Browser connectivity.
     #
-    if browser_reachable:
+    browser_result = browser.run(browser_reachable)
 
-        results.append(
-            DiagnosticResult(
-                name="browser",
-                success=True,
-                status="reachable",
-                summary="Browser can reach go2rtc.",
-            )
-        )
+    results.append(browser_result)
 
-    else:
+    #
+    # If the browser cannot reach go2rtc, there is no point
+    # in executing additional diagnostics.
+    #
+    if browser_result.status != "reachable":
 
-        results.append(
-            DiagnosticResult(
-                name="browser",
-                success=True,
-                status="unreachable",
-                summary="Browser cannot reach go2rtc.",
-            )
-        )
-
-        #
-        # Nothing else makes sense to test.
-        #
         return results
 
     #
-    # go2rtc diagnostic
+    # go2rtc connectivity.
     #
-    go2rtc = get_stream_status(camera)
+    go2rtc_result = go2rtc.run(camera)
 
-    summaries = {
-        "healthy": "Stream is healthy.",
-        "authentication_failed": "go2rtc could not authenticate with the camera.",
-        "camera_unreachable": "Camera could not be reached.",
-        "camera_timeout": "Camera did not respond.",
-        "misconfigured_rtsp_url": "The RTSP URL is misconfigured.",
-        "no_producers": "No producers are available.",
-        "go2rtc_unreachable": "Django could not reach go2rtc.",
-        "go2rtc_error": "go2rtc returned an error.",
-    }
+    results.append(go2rtc_result)
 
-    results.append(
-        DiagnosticResult(
-            name="go2rtc",
-            success=go2rtc["success"],
-            status=go2rtc["status"],
-            summary=summaries.get(
-                go2rtc["status"],
-                "Unknown go2rtc status.",
-            ),
-            details=go2rtc["message"],
-            metadata={
-                "api_url": go2rtc["api_url"],
-                "producer": go2rtc["producer"],
-            },
-        )
-    )
+    #
+    # Future diagnostics will be conditionally executed here.
+    #
+    # Example:
+    #
+    # if go2rtc_result.status == "camera_timeout":
+    #     results.append(rtsp.run(camera))
+    #
+    # if go2rtc_result.status == "camera_unreachable":
+    #     results.append(ping.run(camera))
+    #
 
     return results
